@@ -9,13 +9,12 @@
 #    在这里用做表示最后一个选项(用以判定 while 的结束)
 # $@ 从命令行取出参数列表(不能用用 $* 代替，因为 $* 将所有的参数解释成一个字符串
 #                         而 $@ 是一个参数数组)
-    
-TEMP=`getopt -o ad:s:c:: -a -l apple,desfile:,srcfile:,cherry:: -n "test.sh" -- "$@"`
+TEMP=`getopt -o ad:s:n:c:: -a -l apple,desfile:,srcfile:,netdir:,cherry:: -n "test.sh" -- "$@"`
  
 # 判定 getopt 的执行时候有错，错误信息输出到 STDERR
 if [ $? != 0 ]
 then
-	echo "Terminating....." >&2
+	echo "encfile terminating....." >&2
 	exit 1
 fi
  
@@ -39,6 +38,11 @@ do
 		-s | --srcfile | -srcfile)
 			#echo "option s, argument $2"
             srcfile=$2
+			shift 2
+			;;
+		-n | --netdir | -netdir)
+			#echo "option s, argument $2"
+            netdir=$2
 			shift 2
 			;;
 		-c | --cherry | -cherry)
@@ -78,27 +82,21 @@ cd ..
 
 inifile="./app.ini"
 
-desdir=$(ini_config_get "$inifile" "des" "dir")
-# 获得10以内随机数 
 encno=`expr $RANDOM % 10`;
-#echo $encno
+desdir=$(ini_config_get "$inifile" "des" "dir")
+pw=$(ini_config_get "$inifile" "$encno" "pw")
+comment=$(ini_config_get "$inifile" "$encno" "comment")
+url=$(ini_config_get "$inifile" "$encno" "url")
+surl=$(ini_config_get "$inifile" "$encno" "surl")
 
-    pw=$(ini_config_get "$inifile" "$encno" "pw")
-    comment=$(ini_config_get "$inifile" "$encno" "comment")
-    url=$(ini_config_get "$inifile" "$encno" "url")
-    surl=$(ini_config_get "$inifile" "$encno" "surl")
-#echo $pw
-#echo $comment
-#echo $url
-#echo $surl
 echo "-------add file------"
 rar a -ep "$desfile" -p$pw "$srcfile"
 echo "-------add comment------"
 rar c -z/mnt/n/PWD/$encno/readme.txt "$desfile"
+echo "-------upload file------"
+bypy upload "$desfile" "$netdir/${desfile##*/}"
 
-bypy upload "$desfile" "${desfile##*/}"
+exit 0
 
-#./test.sh -d /mnt/n/nufengdoc/test.rar -s /mnt/n/QQ图片20210501190428.png 
-#rar a -ep /mnt/n/nufengdoc/test.rar /mnt/n/QQ图片20210501190428.png
-#rar a 'C++程序设计语言.第4部分+标准库.原书第4版.rar' -poiert02f 'C++程序设计语言.第4部分+标准库.原书第4版.pdf'
-#rar c -z/mnt/n/nufengdoc/8/readme.txt 'C++程序设计语言.第4部分+标准库.原书第4版'
+
+#

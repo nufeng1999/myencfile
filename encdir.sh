@@ -1,14 +1,24 @@
 #!/bin/bash
 
 # encdir srcdir desdir netdir
+SAVEIFS=$IFS
+IFS=$(echo -en "\n\b")
 
 func (){
     local sdir="$1"      #local局部变量标识符
     local ddir="$2"      #local局部变量标识符   
     local ndir="$3"      #local局部变量标识符   
     #for f in `ls "$1"` 
-    for f in $(ls "$1")
+    #for f in $(ls "$1")
+    FILES="$1/*"
+    for f in $FILES
     do
+        f=${f##*/}
+        #echo "检查 $f"
+        if [ "$f"x = "*"x ]
+        then
+            continue
+        fi
         if [ -f "$sdir/$f" ]
         then
 
@@ -38,4 +48,7 @@ func (){
         fi
     done
 }
+# restore $IFS
+IFS=$SAVEIFS
+
 func "$1" "$2" "$3"
